@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTML Audio Streamer</title>
+</head>
+<body>
+    <center><img src="stream.mjpg" width="640" height="480"></center>
+    <!-- <center><input type="file" accept="audio/*" capture id="recorder"></center>
+    <center><audio id="player" controls></audio></center> -->
+
+    <script>
+        // const recorder = document.getElementById('recorder');
+        // const player = document.getElementById('player');
+
+        // const handleSuccess = stream => {
+        //     const context = new AudioContext();
+        //     context.sampleRate = 44100;
+        //     const source = context.createMediaStreamSource(stream);
+        //     const processor = context.createScriptProcessor(1024, 1, 1);
+
+        //     source.connect(processor);
+        //     processor.connect(context.destination);
+
+        //     processor.onaudioprocess = e => {
+        //         const buffer = e.inputBuffer;
+
+        //         let data = buffer.getChannelData(0);
+
+        //         fetch('/audio', {
+        //             method: 'get',
+        //             body: btoa(data.toString()),
+        //         }).then(console.log).catch(console.error);
+        //     }
+
+        //     // if (window.URL) {
+        //     //     player.srcObject = stream;
+        //     // } else {
+        //     //     player.src = stream;
+        //     // }
+        // };
+
+        // navigator.mediaDevices.getUserMedia({audio: true, video: false})
+        //     .then(handleSuccess);
+
+        // recorder.addEventListener('change', e => {
+        //     const file = e.target.files[0];
+        //     const url = URL.createObjectURL(file);
+
+        //     player.src = url;
+        // });
+    </script>
+</body>
+</html>
