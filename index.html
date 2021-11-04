@@ -4,50 +4,61 @@
     <title>HTML Audio Streamer</title>
 </head>
 <body>
-    <center><img src="stream.mjpg" width="640" height="480"></center>
+    <center>
+        <img src="stream.mjpg" width="640" height="480">
+        
+        <button id="record">Record</button>
+    </center>
     <!-- <center><input type="file" accept="audio/*" capture id="recorder"></center>
     <center><audio id="player" controls></audio></center> -->
 
     <script>
-        // const recorder = document.getElementById('recorder');
-        // const player = document.getElementById('player');
+        const stopButton = document.getElementById('record');
 
-        // const handleSuccess = stream => {
-        //     const context = new AudioContext();
-        //     context.sampleRate = 44100;
-        //     const source = context.createMediaStreamSource(stream);
-        //     const processor = context.createScriptProcessor(1024, 1, 1);
+        const bufferSize = 8192;
+        
+        const handleSuccess = useAudioProc;
 
-        //     source.connect(processor);
-        //     processor.connect(context.destination);
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            .then(handleSuccess);
 
-        //     processor.onaudioprocess = e => {
-        //         const buffer = e.inputBuffer;
+        function useAudioProc(stream) {
+            let started = false;
+            const context = new AudioContext();
+            const source = context.createMediaStreamSource(stream);
+            const processor = context.createScriptProcessor(bufferSize, 1, 1);
+            source.connect(processor);
+            processor.connect(context.destination);
 
-        //         let data = buffer.getChannelData(0);
+            const buf = [];
 
-        //         fetch('/audio', {
-        //             method: 'get',
-        //             body: btoa(data.toString()),
-        //         }).then(console.log).catch(console.error);
-        //     }
+            stopButton.addEventListener('click', function() {
+                if (!started) {
+                    started = true;
+                    stopButton.textContent = "Stop";
+                } else {
+                    console.log(`Sampling rate: ${context.sampleRate}`);
 
-        //     // if (window.URL) {
-        //     //     player.srcObject = stream;
-        //     // } else {
-        //     //     player.src = stream;
-        //     // }
-        // };
+                    let body = {
+                        buf,
+                        sampleRate: context.sampleRate,
+                        bufferSize
+                    }
+                    fetch('/audio', {
+                        method: 'post',
+                        body: JSON.stringify(body)
+                    });
 
-        // navigator.mediaDevices.getUserMedia({audio: true, video: false})
-        //     .then(handleSuccess);
+                    buf.length = 0;
+                    stopButton.textContent = "Start";
+                    started = false;
+                }
+            });
 
-        // recorder.addEventListener('change', e => {
-        //     const file = e.target.files[0];
-        //     const url = URL.createObjectURL(file);
-
-        //     player.src = url;
-        // });
+            processor.onaudioprocess = function(e) {
+                if (started) buf.push(...e.inputBuffer.getChannelData(0));
+            }
+        }
     </script>
 </body>
 </html>
