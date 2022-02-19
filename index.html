@@ -2,15 +2,60 @@
 <html>
 <head>
     <title>HTML Audio Streamer</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <style>
+        body {
+            height: 100%;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            border: 4px solid #222222;
+        }
+
+        .container > div {
+            padding: 5px;
+        }
+        
+        .center {
+            margin: auto;
+        }
+
+        .cl1 {
+            margin: auto;
+            max-width: 15%;
+        }
+
+        img {
+            background-color: aqua;
+        }
+    </style>
 </head>
 <body>
-    <center>
-        <img src="stream.mjpg" width="640" height="480">
+    <div class="container center">
+        <div class="center">
+            <img src="stream.mjpg" width="640" height="480">
+        </div>
         
-        <button id="record">Record</button>
-    </center>
-    <!-- <center><input type="file" accept="audio/*" capture id="recorder"></center>
-    <center><audio id="player" controls></audio></center> -->
+        <div class="center">
+            <button id="record" class="button is-large is-primary">Record</button>
+        </div>
+
+        <div class="center cl1">
+            <input class="input is-large" type="number" id="pan-input">
+        </div>
+
+        <div class="center cl1">    
+            <input class="input is-large" type="number" id="tilt-input">
+        </div>
+
+        <div class="center">
+            <button id="update-camera" class="button is-large is-primary">Update Camera</button>
+        </div>
+    </div>
 
     <script>
         const stopButton = document.getElementById('record');
@@ -59,6 +104,32 @@
                 if (started) buf.push(...e.inputBuffer.getChannelData(0));
             }
         }
+            
+        const panInput = document.getElementById('pan-input');
+        const tiltInput = document.getElementById('tilt-input');
+        const updateCameraBtn= document.getElementById('update-camera');
+
+        updateCameraBtn.addEventListener('click', async () => {
+            let [pan, tilt] = [panInput, tiltInput].map(input => parseInt(input.value));
+            if (isNaN(pan) || isNaN(tilt)) return;
+            if (pan < -90 || pan > 90 || tilt < -90 || tilt > 90) return;
+
+            try {
+                let res = await fetch('/camera/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ pan, tilt }),
+                });
+
+                if (res.status != 200) {
+                    alert(`error: response code ${res.status} received`);
+                }
+            } catch(err) {
+                console.error("error calling fetch:", err);
+            }
+        });
     </script>
 </body>
 </html>
