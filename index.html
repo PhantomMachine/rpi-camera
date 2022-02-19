@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>HTML Audio Streamer</title>
-    
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
     <style>
         body {
@@ -16,10 +17,10 @@
             border: 4px solid #222222;
         }
 
-        .container > div {
+        .container>div {
             padding: 5px;
         }
-        
+
         .center {
             margin: auto;
         }
@@ -34,21 +35,24 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container center">
         <div class="center">
             <img src="stream.mjpg" width="640" height="480">
         </div>
-        
+
         <div class="center">
             <button id="record" class="button is-large is-primary">Record</button>
         </div>
 
         <div class="center cl1">
+            <label for="pan-input">Pan</label>
             <input class="input is-large" type="number" id="pan-input">
         </div>
 
-        <div class="center cl1">    
+        <div class="center cl1">
+            <label for="tilt-input">Tilt</label>
             <input class="input is-large" type="number" id="tilt-input">
         </div>
 
@@ -61,7 +65,7 @@
         const stopButton = document.getElementById('record');
 
         const bufferSize = 8192;
-        
+
         const handleSuccess = useAudioProc;
 
         navigator.mediaDevices.getUserMedia({ audio: true, video: false })
@@ -104,10 +108,22 @@
                 if (started) buf.push(...e.inputBuffer.getChannelData(0));
             }
         }
-            
+
         const panInput = document.getElementById('pan-input');
         const tiltInput = document.getElementById('tilt-input');
-        const updateCameraBtn= document.getElementById('update-camera');
+        const updateCameraBtn = document.getElementById('update-camera');
+
+        fetch('/camera/position', {
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        })
+        .then(resp => resp.json())
+        .then(({pan, tilt}) => {
+            panInput.value = pan;
+            tiltInput.value = tilt;
+        })
+        .catch(err => console.error("error getting camera position:", err));
 
         updateCameraBtn.addEventListener('click', async () => {
             let [pan, tilt] = [panInput, tiltInput].map(input => parseInt(input.value));
@@ -115,7 +131,7 @@
             if (pan < -90 || pan > 90 || tilt < -90 || tilt > 90) return;
 
             try {
-                let res = await fetch('/camera/', {
+                let res = await fetch('/camera/position', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -127,9 +143,10 @@
                     alert(`error: response code ${res.status} received`);
                 }
             } catch(err) {
-                console.error("error calling fetch:", err);
+                console.error("error posting camera position:", err);
             }
         });
     </script>
 </body>
+
 </html>
